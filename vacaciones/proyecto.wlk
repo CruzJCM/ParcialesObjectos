@@ -18,7 +18,7 @@ class Ciudad inherits Lugar{
   override method cumple_tranquilidad() = decibeles < 20
 }
 
-const laPampa = object {}
+const laPampa = object {} // en este caso es al pedo lo de los objetos
 const entreRios = object {}
 const corrientes = object {}
 const misiones = object {}
@@ -53,7 +53,7 @@ object preferenciaRaresa{
 }
 class PreferenciaVariada {
   const property preferencias
-  method va_a_lugar(lugar) = self.preferencias().any({preferencia => preferencia.va_a_lugar(lugar)})
+  method va_a_lugar(lugar) = preferencias.any({preferencia => preferencia.va_a_lugar(lugar)})
 }
 
 class Persona {
@@ -62,33 +62,43 @@ class Persona {
 
   method va_de_vacaciones(lugar) = preferencia.va_a_lugar(lugar)
   method puede_pasar_lugares(tour) = tour.lugares().all({lugar => self.va_de_vacaciones(lugar)})
-  method puede_ir_tour(tour) = self.puede_pasar_lugares(tour) && tour.monto_por_persona() <= presupuesto_maximo
+  method puede_pagar(monto_por_persona) = monto_por_persona <= presupuesto_maximo
 }
 
 class Tour {
   var property fecha_salida
   var property cantidad_personas_requerida
-  var property cantidad_personas
   var property lugares
   var property monto_por_persona
+  const integrantes = []
+  const lista_de_espera = []
 
-  method confirmacion() = cantidad_personas == cantidad_personas_requerida
-  method confirmacionPendiente() = !self.confirmacion()
+  method cantidad_integrantes() = integrantes.length()
+  method hay_lugar() = integrantes.length() < cantidad_personas_requerida
+  method va_a_lugares(persona) = lugares.all({lugar => persona.va_a_lugar(lugar)})
+
+  method validar_monto(persona) = if(!persona.puede_pagar(monto_por_persona)) throw new DomainException(message = "Usted esta dispuesto a pagar menos que " + monto_por_persona)
+
+  method validar_preferencia(persona) = if(!self.va_a_lugares(persona)) throw new DomainException(message = "Algun lugar no lo elegiria")
+
   method agregar_persona(persona) {
-	if(cantidad_personas < cantidad_personas_requerida && persona.puede_ir_tour(self)){
-		cantidad_personas + 1
-	}else{
-		throw new UserException(message = "El tour ya se encuentra confirmado, para agregar una persona debe dar de baja otro pasajero") 
-	}
+    self.validar_monto(persona)
+    self.validar_preferencia(persona)
+    if(!self.hay_lugar()) {
+      lista_de_espera.add(persona)
+      throw new DomainException(message = "No hay lugar")
+    }
+    integrantes.add(persona)
   }
+
   method bajar_persona(persona) {
-	if(cantidad_personas > 0){
-		cantidad_personas - 1
-	}else{
-		throw new UserException(message = "El tour ya se encuentra vacio.") 
-	}
+    integrantes.remove(persona)
+    integrantes.add().first(lista_de_espera)
   }
-  method total_recaudado() = cantidad_personas * monto_por_persona
+  
+  method total_recaudado() = self.cantidad_integrantes() * monto_por_persona
+  method confirmacion() = self.cantidad_integrantes() == cantidad_personas_requerida
+  method confirmacionPendiente() = !self.confirmacion()
 }
 
 class UserException inherits Exception{}
