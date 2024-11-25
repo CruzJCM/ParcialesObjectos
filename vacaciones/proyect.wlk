@@ -89,7 +89,7 @@ class Tour {
 
   method bajar_persona(persona) {
     integrantes.remove(persona)
-    integrantes.add().first(lista_de_espera)
+    integrantes.add(lista_de_espera.first())
   }
 
   method esDeEsteAnio() = fecha_salida.year() == new Date().year()
