@@ -20,8 +20,14 @@ class Comensal {
   }
 
   method es_pipon() = comidas.any({comida => comida.es_pesada()})
+  
+  method comio_algo() = comidas.length() > 0 
+  method cumple_condicion_pasarla_bien() 
+  method la_pasa_bien() = self.comio_algo() && self.cumple_condicion_pasarla_bien()
 }
 
+
+//Ejemplo claro de polimorfismo con el method "dar_elemento" que ni siquiera es heredado por todos, y para cada uno realiza una cosa distinta, pero todos los objetos entienden el mismo mensaje. Este strategy permite utilizar estos objetos que solo tienen un objetivo. Con esto delgo responsabildiades de manera eficiente y aumento la cohesividad del codigo.
 object sordera {
   method primer_elemento(emisor) = emisor.elementos().first()
   method dar_elemento(emisor,receptor,elemento) {
@@ -49,6 +55,7 @@ object bendito {
 }
 
 
+
 class Comida {
   const property bandeja
   const property es_carne
@@ -56,7 +63,6 @@ class Comida {
   
   method es_pesada() = self.calorias() > 500 
 }
-
 object vegetariano {
   method come(comida) = !comida.es_carne()
 }
@@ -64,8 +70,23 @@ object dietetico {
   var property recomendacion_oms = 500
   method come(comida) = comida.calorias() < recomendacion_oms
 }
+//Aca realizo una composicion, de esta manera mejoro la interaccion del comensal de modo que no tenga que usar listas. Esto me permite cambiar facilmente el criterio de los comensales para las comidas, lo que esta explicito en el enunciado.
 class Combineta {
   const property preferencias
   method come(comida) = preferencias.any({preferencia => preferencia.come(comida)})
 }
 
+
+//Todas estas clases heredan el comportamiento del comensal, de esta manera utilizando un template method se puede diferenciar de manera sencilla el comportamiento de "pasarla bien" para cada uno de ellos.
+class Osky inherits Comensal {
+  override method cumple_condicion_pasarla_bien() = true
+}
+class Moni inherits Comensal {
+  override method cumple_condicion_pasarla_bien() = posicion == "1@1"
+}
+class Facu inherits Comensal {
+  override method cumple_condicion_pasarla_bien() = comidas.any({comida => comida.es_carne()})
+}
+class Vero inherits Comensal {
+  override method cumple_condicion_pasarla_bien() = elementos.length() > 3
+}
