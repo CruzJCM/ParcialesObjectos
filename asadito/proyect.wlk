@@ -1,15 +1,16 @@
 class Comensal {
-  const property elementos
-  var property posicion
-  var property criterio_elementos
-  const property comidas
-  var property criterio_comidas 
+  const property elementos = []
+  var property posicion = 0
+  var property criterio_elementos = sordera
+  const property comidas = []
+  var property criterio_comidas = vegetariano
 
-  method pedir_elemento(emisor,elemento) {
-    if (!emisor.elementos().contains(elemento)){
-      throw new DomainException(message = "El comensal no tiene el elemento solicitado")
+  method tiene_elemento(elemento) = self.elementos().contains(elemento)
+  method pasar_elemento(receptor,elemento) {
+    if (!self.tiene_elemento(elemento)){
+      throw new DomainException(message = "No tengo cerca el elemento" + elemento)
     }
-    criterio_elementos.dar_elemento(emisor,self,elemento)
+    criterio_elementos.dar_elemento(self,receptor,elemento)
   }
   method cambiar_posicion(nueva) {
     self.posicion(nueva)
@@ -21,7 +22,7 @@ class Comensal {
 
   method es_pipon() = comidas.any({comida => comida.es_pesada()})
   
-  method comio_algo() = comidas.length() > 0 
+  method comio_algo() = !comidas.isEmpty()
   method cumple_condicion_pasarla_bien() 
   method la_pasa_bien() = self.comio_algo() && self.cumple_condicion_pasarla_bien()
 }
@@ -57,7 +58,6 @@ object bendito {
 
 
 class Comida {
-  const property bandeja
   const property es_carne
   const property calorias
   
@@ -70,23 +70,31 @@ object dietetico {
   var property recomendacion_oms = 500
   method come(comida) = comida.calorias() < recomendacion_oms
 }
+class Alternado {
+  var acepta = false
+  method come(comida) {
+    acepta = !acepta
+	return not acepta
+  } 
+}
 //Aca realizo una composicion, de esta manera mejoro la interaccion del comensal de modo que no tenga que usar listas. Esto me permite cambiar facilmente el criterio de los comensales para las comidas, lo que esta explicito en el enunciado.
 class Combineta {
-  const property preferencias
-  method come(comida) = preferencias.any({preferencia => preferencia.come(comida)})
+  const property preferencias = []
+  //se podria agragar un method para agragar criterios: method agregarCriterios(criterios) = criteriosDeAceptacion.addAll(criterios)
+  method come(comida) = preferencias.all({preferencia => preferencia.come(comida)})
 }
 
 
-//Todas estas clases heredan el comportamiento del comensal, de esta manera utilizando un template method se puede diferenciar de manera sencilla el comportamiento de "pasarla bien" para cada uno de ellos.
-class Osky inherits Comensal {
+//Todas estos objetos heredan el comportamiento del comensal, de esta manera utilizando un template method se puede diferenciar de manera sencilla el comportamiento de "pasarla bien" para cada uno de ellos.
+object osky inherits Comensal {
   override method cumple_condicion_pasarla_bien() = true
 }
-class Moni inherits Comensal {
-  override method cumple_condicion_pasarla_bien() = posicion == "1@1"
+object moni inherits Comensal {
+  override method cumple_condicion_pasarla_bien() = posicion == "1@1" //esto no lo vimos
 }
-class Facu inherits Comensal {
+object facu inherits Comensal {
   override method cumple_condicion_pasarla_bien() = comidas.any({comida => comida.es_carne()})
 }
-class Vero inherits Comensal {
+object vero inherits Comensal {
   override method cumple_condicion_pasarla_bien() = elementos.length() > 3
 }
