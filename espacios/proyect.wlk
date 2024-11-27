@@ -4,6 +4,7 @@ class Espacio {
   const property nombre
   var tiene_vallado
   const property trabajos = []
+  const property trabajos_heavys = []
 
   method supera_metros_base() = self.superficie() > 50
   method cumple_condicion_grande()
@@ -21,6 +22,10 @@ class Espacio {
 
   method agregar_trabajo(trabajo) {
     trabajos.add(trabajo)
+  }
+
+  method rellenar_trabajos_heavys(){
+    trabajos.forEach({trabajo => if (trabajo.es_heavy()) trabajos_heavys.add(trabajo)})
   }
 }
 
@@ -61,6 +66,7 @@ class Profesional {
   var property profesion
   var property es_jardinero
   var property espacio_de_trabajo 
+  var property horas_de_trabajo
 
   method costo_hora() = if (es_jardinero) 2500 else 100
 
@@ -75,7 +81,8 @@ class Profesional {
       autor = nombre,
       fecha = new Date(),
       duracion = profesion.duracion_trabajo(espacio_de_trabajo),
-      costo = self.costo_hora()
+      costo = self.costo_hora(),
+      es_heavy = profesion.cumple_heavy(espacio_de_trabajo,self)
     )
     espacio_de_trabajo.agregar_trabajo(nuevo_trabajo)
   }
@@ -94,7 +101,8 @@ object cerrajero {
         espacio.poner_vallado()
     }
   }
-  method duracion_trabajo(espacio) = if (espacio.es_grande()) 5 else 3  
+  method duracion_trabajo(espacio) = if (espacio.es_grande()) 5 else 3
+  method cumple_heavy(espacio,profesional) = self.duracion_trabajo(espacio) > 5 || (profesional.costo_hora() * self.duracion_trabajo(espacio)) > 10000
 }
 
 object jardinero {
@@ -105,6 +113,7 @@ object jardinero {
     }
   }
   method duracion_trabajo(espacio) = espacio.superficie()/10
+  method cumple_heavy(espacio,profesional) = (profesional.costo_hora() * self.duracion_trabajo(espacio)) > 10000
 }
 
 object encargado {
@@ -115,6 +124,7 @@ object encargado {
     }
   }
   method duracion_trabajo(espacio) = 8
+  method cumple_heavy(espacio,profesional) = (profesional.costo_hora() * self.duracion_trabajo(espacio)) > 10000
 }
 
 /*
@@ -132,5 +142,6 @@ class Trabajo {
   var property autor
   var property fecha
   var property duracion
-  var property costo    
+  var property costo 
+  var property es_heavy   
 }
